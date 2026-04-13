@@ -1,3 +1,4 @@
+import base64
 import os
 from pathlib import Path
 
@@ -11,12 +12,37 @@ load_dotenv(ROOT_DIR / '.env')
 
 BASE_URL = os.getenv('LANGFUSE_BASE_URL')
 ORG = os.getenv('LANGFUSE_ORG')
-PROJECTS_STR = os.getenv('LANGFUSE_PROJECTS', '')
+ORG_PUBLIC_KEY = os.getenv('LANGFUSE_ORG_PUBLIC_KEY')
+ORG_SECRET_KEY = os.getenv('LANGFUSE_ORG_SECRET_KEY')
 
 if not BASE_URL:
     raise RuntimeError('Missing LANGFUSE_BASE_URL in .env')
 
-projects = [p.strip() for p in PROJECTS_STR.split(',') if p.strip()]
+def get_org_projects():
+    if not ORG_PUBLIC_KEY or not ORG_SECRET_KEY:
+        # Fallback to configured projects
+        projects_str = os.getenv('LANGFUSE_PROJECTS', '')
+        return [p.strip() for p in projects_str.split(',') if p.strip()]
+    
+    # Fetch from Langfuse API
+    import requests
+    url = f"{BASE_URL}/api/public/organizations/projects"
+    credentials = f"{ORG_PUBLIC_KEY}:{ORG_SECRET_KEY}"
+    encoded = base64.b64encode(credentials.encode()).decode()
+    headers = {"Authorization": f"Basic {encoded}"}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+        return [p['name'] for p in data.get('projects', [])]
+    except Exception as e:
+        print(f"Failed to fetch projects from Langfuse: {e}")
+        # Fallback
+        projects_str = os.getenv('LANGFUSE_PROJECTS', '')
+        return [p.strip() for p in projects_str.split(',') if p.strip()]
+
+projects = get_org_projects()
 clients = {}
 
 for project in projects:
@@ -46,6 +72,28 @@ def metrics_proxy():
         return jsonify({'error': 'O corpo da requisição deve incluir o campo `query`.'}), 400
 
     project = payload.get('project', default_project)
+    
+    if project == 'all':
+        combined_data = []
+        errors = []
+        for proj, client in clients.items():
+            try:
+                result = client.get_metrics(payload['query'])
+                # Add project info to each data item
+                if 'data' in result and isinstance(result['data'], list):
+                    for item in result['data']:
+                        item['_project'] = proj
+                    combined_data.extend(result['data'])
+            except Exception as exc:
+                errors.append(f'{proj}: {str(exc)}')
+                combined_data.append({"_project": proj, "sum_count": "0"})
+        
+        combined_result = {'data': combined_data}
+        if errors:
+            combined_result['warnings'] = errors
+        
+        return jsonify(combined_result)
+    
     if project not in clients:
         return jsonify({'error': f'Projeto {project} não configurado.'}), 400
 
@@ -58,9 +106,10 @@ def metrics_proxy():
 
 @app.route('/api/info', methods=['GET'])
 def info():
+    available_projects = projects + ['all']
     return jsonify({
         'org': ORG,
-        'projects': projects,
+        'projects': available_projects,
         'default_project': default_project
     })
 

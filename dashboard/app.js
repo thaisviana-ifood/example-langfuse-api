@@ -28,7 +28,7 @@ async function loadOrgProjectInfo() {
       data.projects.forEach(project => {
         const option = document.createElement('option');
         option.value = project;
-        option.textContent = project;
+        option.textContent = project === 'all' ? 'All Projects' : project;
         if (project === data.default_project) {
           option.selected = true;
         }
@@ -146,7 +146,7 @@ form.addEventListener('submit', async (event) => {
     }
 
     renderResult(body);
-    renderDebug({ status: response.status, query, project });
+    renderDebug({ status: response.status, query, project: project === 'all' ? 'All Projects' : project });
   } catch (error) {
     renderResult('Falha na requisição');
     renderDebug(error.message || error);

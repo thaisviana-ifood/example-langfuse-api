@@ -38,6 +38,10 @@ pip install -r requirements.txt
 ```env
 LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"
 LANGFUSE_ORG="your-org"
+# Para carregar projetos dinamicamente (opcional):
+LANGFUSE_ORG_PUBLIC_KEY="pk-lf-org-..."
+LANGFUSE_ORG_SECRET_KEY="sk-lf-org-..."
+# Ou configure manualmente:
 LANGFUSE_PROJECTS="project1,project2"
 LANGFUSE_PUBLIC_KEY_project1="pk-lf-..."
 LANGFUSE_SECRET_KEY_project1="sk-lf-..."
@@ -84,7 +88,7 @@ print(result)
 
 Um dashboard frontend simples está disponível em `dashboard/` e funciona com um proxy de backend seguro para não expor sua `secret_key`.
 
-O dashboard permite selecionar entre múltiplos projetos configurados e exibe informações da organização, além de permitir consultas de métricas personalizadas.
+O dashboard permite selecionar entre múltiplos projetos configurados (incluindo "All Projects" para agregar dados de todos os projetos) e exibe informações da organização, além de permitir consultas de métricas personalizadas.
 
 ### Executar o dashboard
 
