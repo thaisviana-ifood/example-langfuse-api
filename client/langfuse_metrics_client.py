@@ -26,7 +26,8 @@ class LangfuseMetricsClient:
         """
         url = f"{self.base_url}/api/public/v2/metrics"
         headers = self._get_headers()
-        params = {"query": json.dumps(query)}
-        response = requests.get(url, headers=headers, params=params)
+        headers["Content-Type"] = "application/json"
+        payload = {"query": query}
+        response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()

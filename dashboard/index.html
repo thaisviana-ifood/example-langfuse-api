@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Langfuse Metrics Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Langfuse Metrics Dashboard</h1>
+      <p>Visualize métricas da API do Langfuse usando uma consulta de métricas personalizada.</p>
+    </header>
+
+    <section class="panel">
+      <h2>Configuração da consulta</h2>
+      <form id="metrics-form">
+        <label>
+          View
+          <select id="view" name="view">
+            <option value="observations">observations</option>
+            <option value="scores-numeric">scores-numeric</option>
+            <option value="scores-categorical">scores-categorical</option>
+          </select>
+        </label>
+
+        <label>
+          Métrica
+          <select id="metric" name="metric">
+            <option value="count">count</option>
+            <option value="latency">latency</option>
+            <option value="totalCost">totalCost</option>
+          </select>
+        </label>
+
+        <label>
+          Agregação
+          <select id="aggregation" name="aggregation">
+            <option value="sum">sum</option>
+            <option value="avg">avg</option>
+            <option value="max">max</option>
+          </select>
+        </label>
+
+        <label>
+          De
+          <input id="fromTimestamp" type="datetime-local" value="2024-01-01T00:00" />
+        </label>
+
+        <label>
+          Até
+          <input id="toTimestamp" type="datetime-local" value="2024-12-31T23:59" />
+        </label>
+
+        <button type="submit">Buscar métricas</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Resultado</h2>
+      <div id="result" class="result">Nenhuma consulta executada ainda.</div>
+      <pre id="debug" class="debug"></pre>
+    </section>
+
+    <section class="note">
+      <strong>Importante:</strong> para funcionar, este dashboard precisa de um proxy de backend que envie a requisição ao Langfuse API com autenticação segura. Não exponha sua `secret_key` no frontend.
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

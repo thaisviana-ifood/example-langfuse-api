@@ -65,6 +65,36 @@ result = client.get_metrics(query)
 print(result)
 ```
 
+## Dashboard
+
+Um dashboard frontend simples está disponível em `dashboard/` e funciona com um proxy de backend seguro para não expor sua `secret_key`.
+
+### Executar o dashboard
+
+1. Instale as dependências:
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Defina suas variáveis de ambiente em `.env`:
+
+```env
+LANGFUSE_PUBLIC_KEY="pk-lf-..."
+LANGFUSE_SECRET_KEY="sk-lf-..."
+LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"
+```
+
+3. Inicie o servidor local:
+
+```bash
+python server.py
+```
+
+4. Abra o navegador em `http://localhost:5000`.
+
+O frontend envia a consulta ao endpoint `/api/metrics`, e o servidor em `server.py` repassa a requisição ao Langfuse API usando o cliente Python.
+
 ## Testes
 
 Execute os testes com:

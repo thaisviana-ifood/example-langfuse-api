@@ -58,21 +58,22 @@ class TestLangfuseMetricsClient:
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {'data': [{'count': 10}]}
 
-        def fake_get(url, headers=None, params=None):
+        def fake_post(url, headers=None, json=None):
             assert url == f"{client.base_url}/api/public/v2/metrics"
             assert headers is not None
             assert headers['Authorization'].startswith('Basic ')
-            assert params == {
-                'query': json.dumps({
+            assert headers['Content-Type'] == 'application/json'
+            assert json == {
+                'query': {
                     'view': 'observations',
                     'metrics': [{'measure': 'count', 'aggregation': 'sum'}],
                     'fromTimestamp': '2024-01-01T00:00:00Z',
                     'toTimestamp': '2024-12-31T23:59:59Z'
-                })
+                }
             }
             return mock_response
 
-        monkeypatch.setattr('requests.get', fake_get)
+        monkeypatch.setattr('requests.post', fake_post)
 
         query = {
             'view': 'observations',
@@ -91,10 +92,20 @@ class TestLangfuseMetricsClient:
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = Exception('Request failed')
 
-        def fake_get(url, headers=None, params=None):
+        def fake_post(url, headers=None, json=None):
+            assert url == f"{client.base_url}/api/public/v2/metrics"
+            assert headers is not None
+            assert headers['Authorization'].startswith('Basic ')
+            assert headers['Content-Type'] == 'application/json'
+            assert json == {
+                'query': {
+                    'view': 'observations',
+                    'metrics': [{'measure': 'count'}]
+                }
+            }
             return mock_response
 
-        monkeypatch.setattr('requests.get', fake_get)
+        monkeypatch.setattr('requests.post', fake_post)
 
         query = {'view': 'observations', 'metrics': [{'measure': 'count'}]}
 
