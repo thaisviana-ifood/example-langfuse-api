@@ -36,9 +36,24 @@ pip install -r requirements.txt
 3. Configure o arquivo `.env` com seus valores:
 
 ```env
+LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"
+LANGFUSE_ORG="your-org"
+LANGFUSE_PROJECTS="project1,project2"
+LANGFUSE_PUBLIC_KEY_project1="pk-lf-..."
+LANGFUSE_SECRET_KEY_project1="sk-lf-..."
+LANGFUSE_PUBLIC_KEY_project2="pk-lf-..."
+LANGFUSE_SECRET_KEY_project2="sk-lf-..."
+```
+
+Para um único projeto, use:
+
+```env
 LANGFUSE_PUBLIC_KEY="pk-lf-..."
 LANGFUSE_SECRET_KEY="sk-lf-..."
 LANGFUSE_BASE_URL="https://us.cloud.langfuse.com"
+LANGFUSE_ORG="your-org"
+LANGFUSE_PROJECT="your-project"
+LANGFUSE_PROJECTS="your-project"
 ```
 
 ## Uso
@@ -68,6 +83,8 @@ print(result)
 ## Dashboard
 
 Um dashboard frontend simples está disponível em `dashboard/` e funciona com um proxy de backend seguro para não expor sua `secret_key`.
+
+O dashboard permite selecionar entre múltiplos projetos configurados e exibe informações da organização, além de permitir consultas de métricas personalizadas.
 
 ### Executar o dashboard
 

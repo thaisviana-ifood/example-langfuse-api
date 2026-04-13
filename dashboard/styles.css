@@ -29,6 +29,12 @@ p {
   color: #4b5563;
 }
 
+.org-project-info {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
 .panel {
   background: #ffffff;
   border: 1px solid #e5e7eb;

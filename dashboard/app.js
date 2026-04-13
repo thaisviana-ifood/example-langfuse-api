@@ -2,6 +2,83 @@ const form = document.getElementById('metrics-form');
 const result = document.getElementById('result');
 const debug = document.getElementById('debug');
 
+function formatDate(date) {
+  return date.toISOString().slice(0, 16);
+}
+
+function setDefaultDates() {
+  const today = new Date();
+  const fifteenDaysAgo = new Date();
+  fifteenDaysAgo.setDate(today.getDate() - 15);
+
+  document.getElementById('fromTimestamp').value = formatDate(fifteenDaysAgo);
+  document.getElementById('toTimestamp').value = formatDate(today);
+}
+
+async function loadOrgProjectInfo() {
+  try {
+    const response = await fetch('/api/info');
+    if (response.ok) {
+      const data = await response.json();
+      document.getElementById('org').textContent = data.org || 'N/A';
+      
+      const projectSelect = document.getElementById('project-select');
+      projectSelect.innerHTML = '';
+      
+      data.projects.forEach(project => {
+        const option = document.createElement('option');
+        option.value = project;
+        option.textContent = project;
+        if (project === data.default_project) {
+          option.selected = true;
+        }
+        projectSelect.appendChild(option);
+      });
+    } else {
+      document.getElementById('org').textContent = 'Erro ao carregar';
+      document.getElementById('project-select').innerHTML = '<option>Erro</option>';
+    }
+  } catch (error) {
+    document.getElementById('org').textContent = 'Erro ao carregar';
+    document.getElementById('project-select').innerHTML = '<option>Erro</option>';
+  }
+}
+
+function updateMetricOptions() {
+  const view = document.getElementById('view').value;
+  const metricSelect = document.getElementById('metric');
+
+  // Clear existing options
+  metricSelect.innerHTML = '';
+
+  let options = [];
+  if (view === 'observations') {
+    options = [
+      { value: 'count', text: 'count' },
+      { value: 'latency', text: 'latency' },
+      { value: 'totalCost', text: 'totalCost' },
+      { value: 'totalTokens', text: 'totalTokens' }
+    ];
+  } else if (view === 'scores-numeric') {
+    options = [
+      { value: 'count', text: 'count' },
+      { value: 'value', text: 'value' }
+    ];
+  } else if (view === 'scores-categorical') {
+    options = [
+      { value: 'count', text: 'count' },
+      { value: 'value', text: 'value' }
+    ];
+  }
+
+  options.forEach(option => {
+    const opt = document.createElement('option');
+    opt.value = option.value;
+    opt.textContent = option.text;
+    metricSelect.appendChild(opt);
+  });
+}
+
 const buildQuery = () => {
   const view = document.getElementById('view').value;
   const measure = document.getElementById('metric').value;
@@ -36,12 +113,20 @@ const renderDebug = (message) => {
   debug.textContent = typeof message === 'string' ? message : JSON.stringify(message, null, 2);
 };
 
+document.addEventListener('DOMContentLoaded', () => {
+  setDefaultDates();
+  updateMetricOptions();
+  document.getElementById('view').addEventListener('change', updateMetricOptions);
+  loadOrgProjectInfo();
+});
+
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   result.textContent = 'Carregando...';
   debug.textContent = '';
 
   const query = buildQuery();
+  const project = document.getElementById('project-select').value;
 
   try {
     const response = await fetch('/api/metrics', {
@@ -49,7 +134,7 @@ form.addEventListener('submit', async (event) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, project }),
     });
 
     const body = await response.json();
@@ -61,7 +146,7 @@ form.addEventListener('submit', async (event) => {
     }
 
     renderResult(body);
-    renderDebug({ status: response.status, query });
+    renderDebug({ status: response.status, query, project });
   } catch (error) {
     renderResult('Falha na requisição');
     renderDebug(error.message || error);

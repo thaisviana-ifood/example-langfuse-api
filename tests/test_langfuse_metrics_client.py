@@ -58,22 +58,21 @@ class TestLangfuseMetricsClient:
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {'data': [{'count': 10}]}
 
-        def fake_post(url, headers=None, json=None):
+        def fake_get(url, headers=None, params=None):
             assert url == f"{client.base_url}/api/public/v2/metrics"
             assert headers is not None
             assert headers['Authorization'].startswith('Basic ')
-            assert headers['Content-Type'] == 'application/json'
-            assert json == {
-                'query': {
+            assert params == {
+                'query': json.dumps({
                     'view': 'observations',
                     'metrics': [{'measure': 'count', 'aggregation': 'sum'}],
                     'fromTimestamp': '2024-01-01T00:00:00Z',
                     'toTimestamp': '2024-12-31T23:59:59Z'
-                }
+                })
             }
             return mock_response
 
-        monkeypatch.setattr('requests.post', fake_post)
+        monkeypatch.setattr('requests.get', fake_get)
 
         query = {
             'view': 'observations',
@@ -92,20 +91,19 @@ class TestLangfuseMetricsClient:
         mock_response = Mock()
         mock_response.raise_for_status.side_effect = Exception('Request failed')
 
-        def fake_post(url, headers=None, json=None):
+        def fake_get(url, headers=None, params=None):
             assert url == f"{client.base_url}/api/public/v2/metrics"
             assert headers is not None
             assert headers['Authorization'].startswith('Basic ')
-            assert headers['Content-Type'] == 'application/json'
-            assert json == {
-                'query': {
+            assert params == {
+                'query': json.dumps({
                     'view': 'observations',
                     'metrics': [{'measure': 'count'}]
-                }
+                })
             }
             return mock_response
 
-        monkeypatch.setattr('requests.post', fake_post)
+        monkeypatch.setattr('requests.get', fake_get)
 
         query = {'view': 'observations', 'metrics': [{'measure': 'count'}]}
 
